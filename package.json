@@ -1,0 +1,26 @@
+{
+  "name": "javascript-templates",
+  "version": "1.0.0",
+  "description": "handy package to generate boilerplate from cli",
+  "main": "index.js",
+  "dependencies": {
+    "inquirer": "^7.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "generate": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YashKumarVerma/javascript-templates-package.git"
+  },
+  "author": "YashKumarVerma",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/YashKumarVerma/javascript-templates-package/issues"
+  },
+  "homepage": "https://github.com/YashKumarVerma/javascript-templates-package#readme"
+}
