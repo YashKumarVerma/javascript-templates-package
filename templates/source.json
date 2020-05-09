@@ -1,0 +1,19 @@
+{
+  "sources": [
+    {
+      "name": "typescript-server-mongodb",
+      "author": "yashKumarVerma",
+      "repository": "https://github.com/YashKumarVerma/typescript-template"
+    },
+    {
+      "name": "node-template-ts",
+      "author": "smokeTrees",
+      "repository": "https://github.com/smoke-trees/node-template-ts"
+    },
+    {
+      "name": "nodejs-backend-template",
+      "author": "smokeTrees",
+      "repository": "https://github.com/smoke-trees/nodejs-backend-template"
+    }
+  ]
+}

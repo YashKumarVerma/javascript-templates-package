@@ -1,63 +1,49 @@
 #!/usr/bin/env node
 
-const inquirer = require("inquirer");
 const fs = require("fs");
+const chalk = require("chalk");
+const inquirer = require("inquirer");
+const Spinner = require("cli-spinner").Spinner;
+const { questions } = require("./questions");
+const { createDirectoryContents, directoryName, gitClone } = require("./utils");
 
-const CHOICES = fs.readdirSync(`${__dirname}/templates`);
+(async function () {
+  const spinner = new Spinner("Processing");
+  spinner.setSpinnerString(18);
 
-const QUESTIONS = [
-  {
-    name: "project-choice",
-    type: "list",
-    message: "What project template would you like to generate?",
-    choices: CHOICES,
-  },
-  {
-    name: "project-name",
-    type: "input",
-    message: "Project name:",
-    validate: function (input) {
-      if (/^([A-Za-z\-\_\d])+$/.test(input)) return true;
-      else
-        return "Project name may only include letters, numbers, underscores and hashes.";
-    },
-  },
-];
+  const answers = await inquirer.prompt(questions);
 
-const CURR_DIR = process.cwd();
+  const templatePath = `${__dirname}/templates/${directoryName(
+    answers.templateUrl
+  )}`;
 
-inquirer.prompt(QUESTIONS).then((answers) => {
-  const projectChoice = answers["project-choice"];
-  const projectName = answers["project-name"];
-  const templatePath = `${__dirname}/templates/${projectChoice}`;
+  const templateExists = fs.existsSync(templatePath);
+  // wrap everything to avoid expected errors
+  try {
+    //   check if template already exists in storage dir, if not, download it
+    if (templateExists) {
+      // tell user that using saved template
+      console.log(chalk.green("using cached template"));
+    } else {
+      // if template not found, get a fresh copy of it
+      console.log(chalk.red("Cached template not found, fetching"));
 
-  fs.mkdirSync(`${CURR_DIR}/${projectName}`);
-
-  createDirectoryContents(templatePath, projectName);
-});
-
-function createDirectoryContents(templatePath, newProjectPath) {
-  const filesToCreate = fs.readdirSync(templatePath);
-
-  filesToCreate.forEach((file) => {
-    const origFilePath = `${templatePath}/${file}`;
-
-    // get stats about the current file
-    const stats = fs.statSync(origFilePath);
-
-    if (stats.isFile()) {
-      const contents = fs.readFileSync(origFilePath, "utf8");
-
-      const writePath = `${CURR_DIR}/${newProjectPath}/${file}`;
-      fs.writeFileSync(writePath, contents, "utf8");
-    } else if (stats.isDirectory()) {
-      fs.mkdirSync(`${CURR_DIR}/${newProjectPath}/${file}`);
-
-      // recursive call
-      createDirectoryContents(
-        `${templatePath}/${file}`,
-        `${newProjectPath}/${file}`
-      );
+      //   wait till the time it gets cloned
+      spinner.start();
+      await gitClone(answers.templateUrl, templatePath);
+      spinner.stop();
+      process.stdout.write("\n");
+      //   display success message when cloning complete
+      console.log(chalk.green("template downloaded"));
     }
-  });
-}
+
+    // now recursively copy the said template to folder from where script called
+    const callingDirectory = process.cwd();
+    fs.mkdirSync(`${callingDirectory}/${answers.projectName}`);
+    createDirectoryContents(templatePath, answers.projectName);
+    // catch any error, network or local system
+  } catch (e) {
+    // display error message if any step breaks
+    console.log(chalk.red(e.message));
+  }
+})();
