@@ -1,6 +1,6 @@
 {
   "name": "javascript-templates",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "handy package to generate boilerplate from cli",
   "main": "index.js",
   "dependencies": {
