@@ -6,39 +6,55 @@ const inquirer = require("inquirer");
 const Spinner = require("cli-spinner").Spinner;
 const { questions } = require("./questions");
 const { createDirectoryContents, directoryName, gitClone } = require("./utils");
+const homedir = require("os").homedir();
 
+/**
+ * @description function to execute the bundle in a synchronous manner
+ */
 (async function () {
+  // load a new spinner with text:processing, style type 18. Check docs for more
   const spinner = new Spinner("Processing");
   spinner.setSpinnerString(18);
 
+  //   load inquirer questions module with templates data
   const answers = await inquirer.prompt(questions);
 
-  const templatePath = `~/home/.generate/templates/${directoryName(
+  //   generate a unique template path to avoid collisions and enable local caching
+  const templatePath = `${homedir}/.javascript-templates/templates/${directoryName(
     answers.templateUrl
   )}`;
 
+  //   check if local cached version exists
   const templateExists = fs.existsSync(templatePath);
-  // wrap everything to avoid expected errors
+
+  //   lots of fs, so lots of errors to expect
   try {
-    //   check if template already exists in storage dir, if not, download it
+    // if local copy of templates exist, display message
     if (templateExists) {
-      // tell user that using saved template
       console.log(chalk.green("using cached template"));
     } else {
-      // if template not found, get a fresh copy of it
+      // if local copy of template does not exist, display message
       console.log(chalk.red("Cached template not found, fetching"));
 
-      if (!fs.existsSync("~/home/.generate")) {
-        fs.mkdirSync("~/home/.generate");
-        fs.mkdirSync("~/home/.generate/templates");
+      //   ensure that storage directories exist, if not, create them
+      if (!fs.existsSync(`${homedir}/.javascript-templates`)) {
+        fs.mkdirSync(`${homedir}/.javascript-templates`);
+        fs.mkdirSync(`${homedir}/.javascript-templates/templates`);
       }
 
-      //   wait till the time it gets cloned
+      //   start showing spinner before template cloning starts
       spinner.start();
+
+      //   wait for script to clone the repository to required directory
       await gitClone(answers.templateUrl, templatePath);
+
+      //   when cloning ends, stop the spinner
       spinner.stop();
+
+      //   give an extra line to prevent text in same line as spinner text
       process.stdout.write("\n");
-      //   display success message when cloning complete
+
+      //   display success message to user
       console.log(chalk.green("template downloaded"));
     }
 
@@ -46,9 +62,8 @@ const { createDirectoryContents, directoryName, gitClone } = require("./utils");
     const callingDirectory = process.cwd();
     fs.mkdirSync(`${callingDirectory}/${answers.projectName}`);
     createDirectoryContents(templatePath, answers.projectName);
-    // catch any error, network or local system
   } catch (e) {
-    // display error message if any step breaks
+    // catch any error, network or local system
     console.log(chalk.red(e.message));
   }
 })();
