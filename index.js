@@ -13,7 +13,7 @@ const { createDirectoryContents, directoryName, gitClone } = require("./utils");
 
   const answers = await inquirer.prompt(questions);
 
-  const templatePath = `${__dirname}/templates/${directoryName(
+  const templatePath = `~/home/.generate/templates/${directoryName(
     answers.templateUrl
   )}`;
 
@@ -27,6 +27,11 @@ const { createDirectoryContents, directoryName, gitClone } = require("./utils");
     } else {
       // if template not found, get a fresh copy of it
       console.log(chalk.red("Cached template not found, fetching"));
+
+      if (!fs.existsSync("~/home/.generate")) {
+        fs.mkdirSync("~/home/.generate");
+        fs.mkdirSync("~/home/.generate/templates");
+      }
 
       //   wait till the time it gets cloned
       spinner.start();
